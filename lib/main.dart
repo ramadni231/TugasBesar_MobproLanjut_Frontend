@@ -1,20 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
+import 'package:tugas_besar/inti/tema/tema_aplikasi.dart';
+import 'package:tugas_besar/inti/tema/kontroler_tema.dart';
+import 'package:tugas_besar/inti/rute/rute_aplikasi.dart';
 
 void main() {
-  runApp(const MainApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  final KontrolerTema _kontrolerTema = KontrolerTema();
+
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    return ListenableBuilder(
+      listenable: _kontrolerTema,
+      builder: (context, child) {
+        final theme = _kontrolerTema.isDarkMode
+            ? TemaAplikasi.dark()
+            : TemaAplikasi.light();
+        return MaterialApp(
+          title: 'Sistem Presensi Mahasiswa',
+          themeMode: _kontrolerTema.themeMode,
+          theme: theme.toApproximateMaterialTheme(),
+          builder: (context, child) => FTheme(
+            data: theme,
+            child: FToaster(child: FTooltipGroup(child: child!)),
+          ),
+          initialRoute: RuteAplikasi.masuk,
+          routes: RuteAplikasi.routes,
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }
