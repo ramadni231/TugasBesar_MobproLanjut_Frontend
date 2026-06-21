@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:tugas_besar/fitur/otentikasi/controller/otentikasi_controller.dart';
 import 'package:tugas_besar/fitur/otentikasi/component/formulir_masuk.dart';
 import 'package:tugas_besar/inti/tema/kontroler_tema.dart';
@@ -85,17 +86,17 @@ class _ScreenMasukState extends State<ScreenMasuk> {
 
                   // Teks Sambutan
                   const Text(
-                    'Selamat Datang',
+                    'Selamat Datang di\nMy Presensiku',
                     style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w500,
                       color: Colors.white,
-                      height: 1.1,
+                      height: 1.2,
                     ),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Aplikasi Presensi Mobile berbasis Geolocation & QR Code.',
+                    'Silakan masuk ke akun Anda',
                     style: TextStyle(fontSize: 16, color: Colors.white70),
                   ),
                   const SizedBox(height: 40),
@@ -204,34 +205,6 @@ class _ModalOtentikasiState extends State<ModalOtentikasi> {
                 ),
                 const SizedBox(height: 24),
 
-                FSelect<PeranUser>.rich(
-                  label: Text(
-                    'Pilih Peran',
-                    style: TextStyle(
-                      color: isDarkMode
-                          ? Colors.white70
-                          : theme.colors.foreground,
-                    ),
-                  ),
-                  hint: 'Pilih Peran',
-                  format: (value) => value.name.toUpperCase(),
-                  control: FSelectControl.lifted(
-                    value: _controller.peranTerpilih,
-                    onChange: (value) {
-                      if (value != null) _controller.gantiPeran(value);
-                    },
-                  ),
-                  children: [
-                    .item(
-                      title: const Text('Mahasiswa'),
-                      value: PeranUser.mahasiswa,
-                    ),
-                    .item(title: const Text('Dosen'), value: PeranUser.dosen),
-                    .item(title: const Text('Admin'), value: PeranUser.admin),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
                 FormulirMasuk(
                   identitasController: _identitasController,
                   passwordController: _passwordController,
@@ -256,20 +229,21 @@ class _ModalOtentikasiState extends State<ModalOtentikasi> {
   }
 
   Future<void> _handleLogin() async {
-    final sukses = await _controller.login(
+    final peran = await _controller.login(
       _identitasController.text,
       _passwordController.text,
     );
+    
     if (!mounted) return;
 
-    if (sukses) {
+    if (peran != null) {
       Navigator.pop(context); // Tutup modal
-      final routeName = '/${_controller.peranTerpilih.name}';
-      Navigator.of(context).pushReplacementNamed(routeName);
+      // Arahkan sesuai peran dari database API
+      Navigator.of(context).pushReplacementNamed('/$peran');
     } else {
       showFToast(
         context: context,
-        title: const Text('Login Gagal'),
+        title: const Text('Login Gagal. Identitas atau Sandi salah.'),
         variant: FToastVariant.destructive,
       );
     }

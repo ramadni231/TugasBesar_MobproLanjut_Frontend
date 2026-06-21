@@ -19,6 +19,10 @@ class AdminController extends ChangeNotifier {
   bool get sedangLoading => _sedangLoading;
 
   Future<String?> _getToken() async => await _userSession.getToken();
+  Future<Pengguna?> getLoggedInUser() async => await _userSession.getUser();
+
+  /// Kembalikan true jika response menandakan token expired / tidak valid.
+  bool _isUnauthorized(int statusCode) => statusCode == 401 || statusCode == 403;
 
   Future<void> fetchStatistik() async {
     _sedangLoading = true;
@@ -67,17 +71,82 @@ class AdminController extends ChangeNotifier {
     return [];
   }
 
-  Future<bool> tambahPengguna(Map<String, dynamic> data) async {
+  Future<String?> tambahPengguna(Map<String, dynamic> data) async {
     try {
       final token = await _getToken();
       final response = await _apiService.post('/admin/pengguna', data: data, token: token);
-      return response.statusCode == 201;
+      if (response.statusCode == 201) {
+        return null;
+      } else {
+        try {
+          final resBody = jsonDecode(response.body);
+          if (resBody['errors'] != null && resBody['errors'] is Map) {
+            final errors = resBody['errors'] as Map;
+            final List<String> messages = [];
+            errors.forEach((key, value) {
+              if (value is List) {
+                messages.add(value.join(', '));
+              } else {
+                messages.add(value.toString());
+              }
+            });
+            return messages.join('\n');
+          }
+          return resBody['message'] ?? 'Gagal menambahkan pengguna';
+        } catch (_) {
+          return 'Gagal menambahkan pengguna (Status: ${response.statusCode})';
+        }
+      }
     } catch (e) {
       debugPrint('Tambah Pengguna Error: $e');
+      return e.toString();
+    }
+  }
+
+  Future<bool> hapusPengguna(int id) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.delete('/admin/pengguna/$id', token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Hapus Pengguna Error: $e');
       return false;
     }
   }
 
+  Future<String?> updatePengguna(int id, Map<String, dynamic> data) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.put('/admin/pengguna/$id', data: data, token: token);
+      if (response.statusCode == 200) {
+        return null;
+      } else {
+        try {
+          final resBody = jsonDecode(response.body);
+          if (resBody['errors'] != null && resBody['errors'] is Map) {
+            final errors = resBody['errors'] as Map;
+            final List<String> messages = [];
+            errors.forEach((key, value) {
+              if (value is List) {
+                messages.add(value.join(', '));
+              } else {
+                messages.add(value.toString());
+              }
+            });
+            return messages.join('\n');
+          }
+          return resBody['message'] ?? 'Gagal memperbarui pengguna';
+        } catch (_) {
+          return 'Gagal memperbarui pengguna (Status: ${response.statusCode})';
+        }
+      }
+    } catch (e) {
+      debugPrint('Update Pengguna Error: $e');
+      return e.toString();
+    }
+  }
+
+  // --- RUANGAN ---
   Future<List<Ruangan>> fetchRuangan() async {
     try {
       final token = await _getToken();
@@ -92,6 +161,40 @@ class AdminController extends ChangeNotifier {
     return [];
   }
 
+  Future<bool> tambahRuangan(Map<String, dynamic> data) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post('/admin/ruangan', data: data, token: token);
+      return response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Tambah Ruangan Error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateRuangan(int id, Map<String, dynamic> data) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.put('/admin/ruangan/$id', data: data, token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Update Ruangan Error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> hapusRuangan(int id) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.delete('/admin/ruangan/$id', token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Hapus Ruangan Error: $e');
+      return false;
+    }
+  }
+
+  // --- MATAKULIAH ---
   Future<List<Matakuliah>> fetchMatakuliah() async {
     try {
       final token = await _getToken();
@@ -106,6 +209,40 @@ class AdminController extends ChangeNotifier {
     return [];
   }
 
+  Future<bool> tambahMatakuliah(Map<String, dynamic> data) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post('/admin/matakuliah', data: data, token: token);
+      return response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Tambah Matakuliah Error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateMatakuliah(int id, Map<String, dynamic> data) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.put('/admin/matakuliah/$id', data: data, token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Update Matakuliah Error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> hapusMatakuliah(int id) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.delete('/admin/matakuliah/$id', token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Hapus Matakuliah Error: $e');
+      return false;
+    }
+  }
+
+  // --- JADWAL ---
   Future<List<Jadwal>> fetchJadwal() async {
     try {
       final token = await _getToken();
@@ -120,6 +257,40 @@ class AdminController extends ChangeNotifier {
     return [];
   }
 
+  Future<bool> tambahJadwal(Map<String, dynamic> data) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post('/admin/jadwal', data: data, token: token);
+      return response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Tambah Jadwal Error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateJadwal(int id, Map<String, dynamic> data) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.put('/admin/jadwal/$id', data: data, token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Update Jadwal Error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> hapusJadwal(int id) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.delete('/admin/jadwal/$id', token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Hapus Jadwal Error: $e');
+      return false;
+    }
+  }
+
+  // --- IZIN ---
   Future<List<Izin>> fetchIzin() async {
     try {
       final token = await _getToken();
@@ -137,11 +308,112 @@ class AdminController extends ChangeNotifier {
   Future<bool> updateStatusIzin(int id, String status) async {
     try {
       final token = await _getToken();
-      final response = await _apiService.post('/admin/izin/$id/status', data: {'status_persetujuan': status}, token: token); // Note: Should use PUT ideally but following my controller logic
+      final response = await _apiService.put('/admin/izin/$id/status', data: {'status_persetujuan': status}, token: token);
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('Update Izin Error: $e');
       return false;
+    }
+  }
+
+  // --- PEMINATAN ---
+  Future<bool> toggleMasaPeminatan(bool isAktif) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post('/admin/pengaturan/peminatan', data: {'is_aktif': isAktif}, token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Toggle Peminatan Error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateStatusPeminatan(int id, String status) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.put('/admin/peminatan/$id/status', data: {'status': status}, token: token);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Update Peminatan Error: $e');
+      return false;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchPeminatan() async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/admin/peminatan', token: token);
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body)['data'];
+        return List<Map<String, dynamic>>.from(data);
+      }
+    } catch (e) {
+      debugPrint('Fetch Peminatan Error: $e');
+    }
+    return [];
+  }
+
+  Future<bool> getPeminatanStatus() async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/admin/pengaturan/peminatan', token: token);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['data']['is_aktif'];
+      }
+    } catch (e) {
+      debugPrint('Get Peminatan Status Error: $e');
+    }
+    return false;
+  }
+
+  Future<Map<String, dynamic>?> fetchJadwalRekap(int id) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/admin/jadwal/$id/rekap', token: token);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['data'];
+      }
+    } catch (e) {
+      debugPrint('Fetch Jadwal Rekap Error: $e');
+    }
+    return null;
+  }
+
+  Future<String> fetchTanggalMulaiSemester() async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/admin/pengaturan/mulai-semester', token: token);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['data']['nilai'];
+      }
+    } catch (e) {
+      debugPrint('Fetch Tanggal Mulai Semester Error: $e');
+    }
+    return '2026-02-23';
+  }
+
+  Future<bool> setTanggalMulaiSemester(String tanggal) async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        debugPrint('Set Tanggal Mulai Semester: token null, sesi tidak valid');
+        return false;
+      }
+      final response = await _apiService.post(
+        '/admin/pengaturan/mulai-semester',
+        data: {'tanggal': tanggal},
+        token: token,
+      );
+      debugPrint('Set Tanggal Mulai Semester: HTTP ${response.statusCode} — ${response.body}');
+      if (_isUnauthorized(response.statusCode)) {
+        // Token expired / tidak valid — hapus sesi agar user login ulang
+        await _userSession.clearSession();
+        throw Exception('SESSION_EXPIRED');
+      }
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Set Tanggal Mulai Semester Error: $e');
+      rethrow;
     }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:tugas_besar/inti/tema/kontroler_tema.dart';
+import 'package:tugas_besar/umum/utilitas/api_service.dart';
+import 'package:tugas_besar/umum/utilitas/user_session.dart';
 
 class ModalProfilSlider extends StatefulWidget {
   final String nama;
@@ -21,12 +23,45 @@ class ModalProfilSlider extends StatefulWidget {
 class _ModalProfilSliderState extends State<ModalProfilSlider> {
   final _passwordLamaController = TextEditingController();
   final _passwordBaruController = TextEditingController();
+  bool _sedangLoading = false;
 
   @override
   void dispose() {
     _passwordLamaController.dispose();
     _passwordBaruController.dispose();
     super.dispose();
+  }
+
+  Future<void> _ubahSandi() async {
+    if (_passwordLamaController.text.isEmpty || _passwordBaruController.text.isEmpty) {
+      showFToast(context: context, title: const Text('Semua kolom harus diisi!'), variant: FToastVariant.destructive);
+      return;
+    }
+
+    setState(() => _sedangLoading = true);
+
+    try {
+      final token = await UserSession().getToken();
+      final response = await ApiService().put('/profile/password', data: {
+        'password_lama': _passwordLamaController.text,
+        'password_baru': _passwordBaruController.text,
+        'password_baru_confirmation': _passwordBaruController.text, // Laravel validation requirement
+      }, token: token);
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        showFToast(context: context, title: const Text('Kata Sandi Berhasil Diperbarui'));
+        Navigator.pop(context);
+      } else {
+        showFToast(context: context, title: const Text('Sandi lama salah atau terjadi kesalahan.'), variant: FToastVariant.destructive);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showFToast(context: context, title: Text('Error: $e'), variant: FToastVariant.destructive);
+    }
+
+    if (mounted) setState(() => _sedangLoading = false);
   }
 
   @override
@@ -114,11 +149,8 @@ class _ModalProfilSliderState extends State<ModalProfilSlider> {
               ),
               const SizedBox(height: 24),
               FButton(
-                onPress: () {
-                  showFToast(context: context, title: const Text('Kata Sandi Berhasil Diperbarui'));
-                  Navigator.pop(context);
-                },
-                child: const Text('Simpan Perubahan'),
+                onPress: _sedangLoading ? null : _ubahSandi,
+                child: Text(_sedangLoading ? 'MENYIMPAN...' : 'Simpan Perubahan'),
               ),
               const SizedBox(height: 12),
               FButton(

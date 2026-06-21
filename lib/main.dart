@@ -3,8 +3,9 @@ import 'package:forui/forui.dart';
 import 'package:tugas_besar/inti/tema/tema_aplikasi.dart';
 import 'package:tugas_besar/inti/tema/kontroler_tema.dart';
 import 'package:tugas_besar/inti/rute/rute_aplikasi.dart';
+import 'package:tugas_besar/umum/utilitas/user_session.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
@@ -23,14 +24,14 @@ class MyApp extends StatelessWidget {
             ? TemaAplikasi.dark()
             : TemaAplikasi.light();
         return MaterialApp(
-          title: 'Sistem Presensi Mahasiswa',
+          title: 'Presensiku',
           themeMode: _kontrolerTema.themeMode,
           theme: theme.toApproximateMaterialTheme(),
           builder: (context, child) => FTheme(
             data: theme,
             child: FToaster(child: FTooltipGroup(child: child!)),
           ),
-          initialRoute: RuteAplikasi.masuk,
+          initialRoute: RuteAplikasi.splash,
           routes: RuteAplikasi.routes,
           debugShowCheckedModeBanner: false,
         );

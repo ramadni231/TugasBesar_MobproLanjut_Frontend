@@ -13,15 +13,7 @@ class OtentikasiController extends ChangeNotifier {
   bool _sedangLoading = false;
   bool get sedangLoading => _sedangLoading;
 
-  PeranUser _peranTerpilih = PeranUser.mahasiswa;
-  PeranUser get peranTerpilih => _peranTerpilih;
-
-  void gantiPeran(PeranUser peran) {
-    _peranTerpilih = peran;
-    notifyListeners();
-  }
-
-  Future<bool> login(String identitas, String password) async {
+  Future<String?> login(String identitas, String password) async {
     _sedangLoading = true;
     notifyListeners();
 
@@ -41,7 +33,7 @@ class OtentikasiController extends ChangeNotifier {
         
         _sedangLoading = false;
         notifyListeners();
-        return true;
+        return pengguna.peran; // Return the actual role from DB
       }
     } catch (e) {
       debugPrint('Login Error: $e');
@@ -49,7 +41,7 @@ class OtentikasiController extends ChangeNotifier {
 
     _sedangLoading = false;
     notifyListeners();
-    return false;
+    return null; // Return null on failure
   }
 
   Future<void> logout() async {

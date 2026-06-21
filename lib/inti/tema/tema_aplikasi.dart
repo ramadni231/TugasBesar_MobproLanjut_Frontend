@@ -32,7 +32,8 @@ class TemaAplikasi {
         primary: biruSpesifik,
         background: navyGelap, // Latar belakang dashboard navy di dark mode
         foreground: offWhite,
-        card: navyTerang,
+        card: navyGelap,
+        border: offWhite,
         muted: navyGelap,
         mutedForeground: offWhite.withValues(alpha: 0.7),
       ),
